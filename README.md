@@ -89,9 +89,9 @@ These are **task classes, not sequential stages**.
 
 ## GitHub routing
 
-- GitHub search, diff analysis, issue/PR drafts, and review use the appropriate Luna role.
-- Code implementation and tests use `luna_quickfix` or `luna_max`.
-- Astra owns the final scope, approval, and execution of public repository creation, commits, pushes, merges, and permission changes.
+- GitHub work uses Luna/max by default: `luna_max` handles repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts.
+- `luna_review_max` handles independent GitHub diff and correctness review.
+- Astra is limited to task framing, final scope and safety approval, and public repository creation, push, merge, or permission execution.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 
 ## Compatibility note

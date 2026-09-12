@@ -252,9 +252,9 @@ Use independent review when it materially improves correctness; do not create ce
 Do not claim unrun tests passed.
 
 GitHub routing:
-- Use the appropriate Luna role for GitHub search, diff analysis, issue/PR drafting, and review.
-- Use `luna_quickfix` or `luna_max` for code implementation and tests.
-- Astra owns the final scope, approval, and execution of public repository creation, commits, pushes, merges, and permission changes.
+- Route GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting.
+- Use `luna_review_max` for independent GitHub diff and correctness review.
+- Keep Astra to the minimum needed for task framing, final scope and safety approval, and execution of public repository creation, pushes, merges, and permission changes.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
 ```
