@@ -250,6 +250,12 @@ Use a small useful number of independent workers.
 Do not let multiple workers edit the same file concurrently.
 Use independent review when it materially improves correctness; do not create ceremonial reviewers.
 Do not claim unrun tests passed.
+
+GitHub routing:
+- Use the appropriate Luna role for GitHub search, diff analysis, issue/PR drafting, and review.
+- Use `luna_quickfix` or `luna_max` for code implementation and tests.
+- Astra owns the final scope, approval, and execution of public repository creation, commits, pushes, merges, and permission changes.
+- Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
 ```
 

@@ -87,6 +87,13 @@ These are **task classes, not sequential stages**.
 - Do not fill the 1M window simply because it exists.
 - If Luna reaches a genuinely hard unresolved decision, send the evidence back to Astra instead of adding another manager model.
 
+## GitHub routing
+
+- GitHub search, diff analysis, issue/PR drafts, and review use the appropriate Luna role.
+- Code implementation and tests use `luna_quickfix` or `luna_max`.
+- Astra owns the final scope, approval, and execution of public repository creation, commits, pushes, merges, and permission changes.
+- Never publish secrets, local configuration, credentials, or an unreviewed backlog.
+
 ## Compatibility note
 
 `model_context_window = 1_000_000` is a requested value. The effective context window can still be limited by the installed Codex build, model catalog, account availability, or project/profile overrides.
