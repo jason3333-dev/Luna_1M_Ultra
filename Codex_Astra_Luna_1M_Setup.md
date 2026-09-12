@@ -217,10 +217,12 @@ Add this block to the active global or project `AGENTS.md`.
 <!-- BEGIN ASTRA_LUNA_1M -->
 ## Astra + Luna routing
 
-Astra owns orchestration, hard technical decisions, integration, and final acceptance.
+Astra is the main session and owns orchestration, hard technical decisions, integration, and final acceptance.
 All delegated AI work uses Luna. Do not use Sol, Terra, or another Astra child.
 
-Choose the Luna role directly by task size:
+For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Delegate even when only one task can be parallelized; delegate independent units in parallel. While Luna works, Astra does not repeat the same scope.
+
+Choose the Luna role directly by task difficulty and permission needs:
 - `luna_scan`: low — exact searches and facts.
 - `luna_analyze`: medium — bounded flow/log/dependency analysis.
 - `luna_quickfix`: high — clear small fixes and routine tests.
@@ -246,14 +248,15 @@ After two materially different failed approaches without progress, Luna reports 
 Astra decides directly, then the same Luna worker continues implementation and verification.
 Escalate security or data-loss risks immediately.
 
+Astra may act directly only for simple answers, tiny obvious work, judgments requiring the full main-session context, or a concrete technical or permission blocker to delegation. Do not skip delegation merely because Astra can do the work.
+
 Use a small useful number of independent workers.
 Do not let multiple workers edit the same file concurrently.
 Use independent review when it materially improves correctness; do not create ceremonial reviewers.
 Do not claim unrun tests passed.
 
 GitHub routing:
-- Route GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting.
-- Use `luna_review_max` for independent GitHub diff and correctness review.
+- Route important GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review_max` for independent review.
 - Keep Astra to the minimum needed for task framing, final scope and safety approval, and execution of public repository creation, pushes, merges, and permission changes.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
