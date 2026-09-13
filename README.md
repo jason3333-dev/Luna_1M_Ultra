@@ -1,11 +1,15 @@
-# Codex Astra + Luna Model-Max Context
+# Luna_1M_Ultra
 
-A lightweight Codex multi-agent configuration built around two models only:
+A lightweight Codex multi-agent configuration and prompt/routing profile built around two actual models only:
 
-- **Astra** — orchestration, hard technical decisions, integration, final acceptance
-- **Luna** — exploration, implementation, debugging, testing, and review
+- **Astra** — the `gpt-6-astra` main session for orchestration, hard technical decisions, integration, and final acceptance
+- **Luna** — `gpt-5.6-luna` delegated leaf workers for exploration, implementation, debugging, testing, and review
 
-The setup avoids Sol/Terra handoff layers and instead reuses Luna context where it is useful.
+`Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual profile name for the prompt, role, context, and routing behavior described here. It is not a Codex model ID or an official model offering. The actual Luna model remains `gpt-5.6-luna`; only that real model ID belongs in Luna `model` fields.
+
+This repository is an independent public clone of the profile documentation, not a same-account Git fork.
+
+The profile keeps Astra as the main session, uses Luna workers as leaves, avoids Sol/Terra handoff layers and Astra child sessions, and reuses Luna context where it is useful.
 
 ## Why this setup
 
@@ -14,12 +18,12 @@ A common multi-agent pattern adds multiple model tiers between orchestration and
 This configuration keeps the hierarchy simple:
 
 ```text
-Astra main/native (global default)
-├─ Luna Low      → search / lookup
-├─ Luna Medium   → analysis
-├─ Luna High     → small fixes / routine tests
-├─ Luna Max      → implementation / difficult debugging
-└─ Luna Review   → independent review
+Astra main (`gpt-6-astra`; global default)
+├─ Luna Low (`gpt-5.6-luna`)      → search / lookup
+├─ Luna Medium (`gpt-5.6-luna`)   → analysis
+├─ Luna High (`gpt-5.6-luna`)     → small fixes / routine tests
+├─ Luna Max (`gpt-5.6-luna`)      → implementation / difficult debugging
+└─ Luna Review (`gpt-5.6-luna`)   → independent review
 ```
 
 Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Astra stays focused on decisions that benefit from already having the main-session context.
@@ -27,7 +31,9 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 ## Features
 
 - Astra as the single top-level orchestrator
-- Luna-only delegated agents
+- Luna-only delegated leaf agents
+- No Sol/Terra workers and no Astra child sessions
+- `Luna_1M_Ultra` as a conceptual prompt/routing profile, not a model ID
 - Global default request of `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000`
 - Five task-based Luna roles inheriting the global context and compaction default: `low`, `medium`, `high`, `max`, and `review`
 - The local model catalog may clamp the request to `max_context_window = 872_000`, with an effective runtime compaction limit of `828_400`
@@ -55,9 +61,10 @@ enabled = true
 default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "medium"
 max_concurrent_threads_per_session = 12
+max_depth = 1
 ```
 
-The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. The setup also defines Luna roles under:
+The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. Each role uses the actual model ID `gpt-5.6-luna`; the `Luna_1M_Ultra` profile name must not replace it. The setup also defines Luna roles under:
 
 ```text
 ~/.codex/agents/
@@ -86,6 +93,7 @@ These are **task classes, not sequential stages**.
 - Start fresh for unrelated one-off tasks.
 - Do not force an empty context just to save inexpensive Luna input tokens.
 - Do not fill the global default context window simply because it exists.
+- Keep Luna workers as leaves; they do not spawn subagents.
 - If Luna reaches a genuinely hard unresolved decision, send the evidence back to Astra instead of adding another manager model.
 
 ## GitHub routing
@@ -99,7 +107,7 @@ These are **task classes, not sequential stages**.
 
 ## Compatibility note
 
-The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for Astra and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings.
+The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for Astra and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings. This clamp is runtime behavior, not a new model named “Luna Ultra.”
 
 ## License
 
