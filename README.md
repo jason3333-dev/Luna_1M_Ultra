@@ -14,12 +14,12 @@ A common multi-agent pattern adds multiple model tiers between orchestration and
 This configuration keeps the hierarchy simple:
 
 ```text
-Astra main/native (~258K)
-├─ Luna Low      Codex max → search / lookup
-├─ Luna Medium   Codex max → analysis
-├─ Luna High     Codex max → small fixes / routine tests
-├─ Luna Max      Codex max → implementation / difficult debugging
-└─ Luna Review   Codex max → independent review
+Astra main/native (global default)
+├─ Luna Low      → search / lookup
+├─ Luna Medium   → analysis
+├─ Luna High     → small fixes / routine tests
+├─ Luna Max      → implementation / difficult debugging
+└─ Luna Review   → independent review
 ```
 
 Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Astra stays focused on decisions that benefit from already having the main-session context.
@@ -28,9 +28,9 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 
 - Astra as the single top-level orchestrator
 - Luna-only delegated agents
-- Astra native-default context of approximately 258K
-- Five task-based Luna roles at the current Codex model maximum: `low`, `medium`, `high`, `max`, and `review`
-- Codex-default context and compaction for Astra; catalog-maximum context and compaction for Luna roles
+- Global default request of `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000`
+- Five task-based Luna roles inheriting the global context and compaction default: `low`, `medium`, `high`, `max`, and `review`
+- The local model catalog may clamp the request to `max_context_window = 872_000`, with an effective runtime compaction limit of `828_400`
 - Context reuse across investigation → implementation → testing → revision
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
@@ -47,6 +47,8 @@ model = "gpt-6-astra"
 model_reasoning_effort = "low"
 plan_mode_reasoning_effort = "low"
 review_model = "gpt-5.6-luna"
+model_context_window = 1_000_000
+model_auto_compact_token_limit = 900_000
 
 [agents]
 enabled = true
@@ -55,7 +57,7 @@ default_subagent_reasoning_effort = "medium"
 max_concurrent_threads_per_session = 12
 ```
 
-and defines Luna roles under:
+The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. The setup also defines Luna roles under:
 
 ```text
 ~/.codex/agents/
@@ -70,11 +72,11 @@ and defines Luna roles under:
 
 | Role | Effort | Context | Use case |
 |---|---:|---:|---|
-| `luna_low` | low | Codex max | file/symbol lookup, exact searches |
-| `luna_medium` | medium | Codex max | flow tracing, logs, dependencies |
-| `luna_high` | high | Codex max | small fixes, routine tests |
-| `luna_max` | max | Codex max | substantive implementation, hard debugging |
-| `luna_review` | high | Codex max | independent review |
+| `luna_low` | low | Global default | file/symbol lookup, exact searches |
+| `luna_medium` | medium | Global default | flow tracing, logs, dependencies |
+| `luna_high` | high | Global default | small fixes, routine tests |
+| `luna_max` | max | Global default | substantive implementation, hard debugging |
+| `luna_review` | high | Global default | independent review |
 
 These are **task classes, not sequential stages**.
 
@@ -83,7 +85,7 @@ These are **task classes, not sequential stages**.
 - Reuse an existing Luna worker for related work.
 - Start fresh for unrelated one-off tasks.
 - Do not force an empty context just to save inexpensive Luna input tokens.
-- Do not fill the native-default Astra window or a Luna model-maximum window simply because it exists.
+- Do not fill the global default context window simply because it exists.
 - If Luna reaches a genuinely hard unresolved decision, send the evidence back to Astra instead of adding another manager model.
 
 ## GitHub routing
@@ -97,7 +99,7 @@ These are **task classes, not sequential stages**.
 
 ## Compatibility note
 
-Luna role files request the maximum context allowed by the current Codex model catalog; Astra leaves context and compaction at Codex defaults (approximately 258K native context in this setup). Effective limits can still be lower because of the installed Codex build, account availability, or project/profile overrides.
+The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for Astra and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings.
 
 ## License
 
