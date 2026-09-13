@@ -194,18 +194,6 @@ Do not add compatibility aliases to the active role directory unless a specific 
 
 ---
 
-## Worker result metadata
-
-Every Luna worker final response begins with one metadata line using its configured values:
-
-```text
-[agent=luna_max model=gpt-5.6-luna reasoning=max plan_reasoning=max]
-```
-
-This line exposes configuration metadata only; it never exposes hidden chain-of-thought or private reasoning.
-
----
-
 ## 4. `AGENTS.md` routing block for `Luna_1M_Ultra`
 
 Add this block to the active global or project `AGENTS.md`.
@@ -222,8 +210,6 @@ For important repository work, delegate one coherent unit to an existing suitabl
 The default delegated worker is `luna_max` with max reasoning. Use lower-effort roles only when the task explicitly warrants them.
 
 Use a small number of parallel Luna workers for independent units that improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
-
-Every Luna worker final response must begin with one metadata line in the form `[agent=<role> model=<model> reasoning=<effort> plan_reasoning=<plan_effort>]`, using its configured values. This line exposes configuration metadata only; never expose hidden chain-of-thought or private reasoning.
 
 Choose the Luna role directly by task difficulty and permission needs:
 - `luna_low`: low — exact searches and facts.

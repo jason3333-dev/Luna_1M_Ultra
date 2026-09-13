@@ -42,17 +42,6 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
 - Separate read-only review roles
-- Visible worker result metadata for role, model, and reasoning effort
-
-## Worker result metadata
-
-Every Luna worker final response begins with one metadata line using its configured values:
-
-```text
-[agent=luna_max model=gpt-5.6-luna reasoning=max plan_reasoning=max]
-```
-
-This line exposes configuration metadata only; it never exposes hidden chain-of-thought or private reasoning.
 
 ## Setup
 
