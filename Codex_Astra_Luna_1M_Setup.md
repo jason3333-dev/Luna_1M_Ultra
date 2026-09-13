@@ -6,6 +6,7 @@ The design goals are:
 
 - Keep orchestration and hard technical decisions in Astra.
 - Use Luna for exploration, implementation, debugging, testing, and review.
+- Because Luna is low-cost, use parallel Luna workers proactively when independent work units can improve turnaround or coverage.
 - Select Luna reasoning effort by task complexity instead of running every task at `max`.
 - Reuse relevant Luna context across investigation, implementation, and verification.
 - Avoid unnecessary Sol/Terra handoffs and duplicated high-cost context.
@@ -221,6 +222,8 @@ Astra is the main session and owns orchestration, hard technical decisions, inte
 All delegated AI work uses Luna. Do not use Sol, Terra, or another Astra child.
 
 For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Delegate even when only one task can be parallelized; delegate independent units in parallel. While Luna works, Astra does not repeat the same scope.
+
+Because Luna is low-cost, actively use a small number of parallel Luna workers when independent units can improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
 
 Choose the Luna role directly by task difficulty and permission needs:
 - `luna_scan`: low — exact searches and facts.

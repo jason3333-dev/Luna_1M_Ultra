@@ -91,6 +91,7 @@ These are **task classes, not sequential stages**.
 
 - Important GitHub work is explicitly delegated to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing; reuse that worker when possible.
 - Luna/max is the default: `luna_max` handles repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; `luna_review_max` handles independent review.
+- Because Luna is low-cost, use a small number of parallel Luna workers proactively when independent work units improve turnaround or coverage; keep their scopes separate.
 - Astra is limited to task framing, final scope and safety approval, and public repository creation, push, merge, or permission execution.
 - While Luna works, Astra does not repeat the same scope; independent work units may be delegated to Luna in parallel.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
