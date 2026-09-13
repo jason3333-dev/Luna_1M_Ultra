@@ -10,21 +10,21 @@ The design goals are:
 - Select Luna reasoning effort by task complexity instead of running every task at `max`.
 - Reuse relevant Luna context across investigation, implementation, and verification.
 - Avoid unnecessary Sol/Terra handoffs and duplicated high-cost context.
-- Request a 1M context window for the primary session and Luna roles.
+- Use Astra's native approximately 258K context and request a 1M context window for each Luna role.
 
-> `model_context_window = 1_000_000` is a requested capacity. The effective runtime limit is still bounded by the model catalog and the installed Codex build.
+> The 1M value is requested for Luna roles. Astra uses its native approximately 258K context; effective limits are still bounded by the model catalog and installed Codex build.
 
 ---
 
 ## Architecture
 
 ```text
-Astra max
-├─ Luna low       → file/symbol lookup, narrow searches
-├─ Luna medium    → flow tracing, logs, dependency analysis
-├─ Luna high      → small fixes, routine tests, standard review
-└─ Luna max       → substantive implementation, difficult debugging,
-                    multi-file work, deep review
+Astra main/native (~258K)
+├─ Luna Low      1M → file/symbol lookup, narrow searches
+├─ Luna Medium   1M → flow tracing, logs, dependency analysis
+├─ Luna High     1M → small fixes, routine tests
+├─ Luna Max      1M → substantive implementation, difficult debugging
+└─ Luna Review   1M → independent review
 ```
 
 There is no mandatory `low → medium → high → max` pipeline. Pick the role that matches the task.
@@ -39,12 +39,13 @@ Merge the following into `~/.codex/config.toml` or the active Codex configuratio
 
 ```toml
 model = "gpt-6-astra"
-model_reasoning_effort = "max"
-plan_mode_reasoning_effort = "max"
+model_reasoning_effort = "low"
+plan_mode_reasoning_effort = "low"
 review_model = "gpt-5.6-luna"
 
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 258_000
+model_auto_compact_token_limit = 240_000
+model_auto_compact_token_limit_scope = "total"
 
 [agents]
 enabled = true
@@ -57,8 +58,8 @@ max_depth = 1
 Notes:
 
 - `max_depth` applies to older V1 multi-agent behavior. V2 may ignore it.
-- The 900K compaction threshold is an operating starting point, not a universal optimum.
-- If the model catalog exposes a lower maximum context window, Codex may clamp the requested value.
+- The 240K Astra and 900K Luna compaction thresholds are operating starting points, not universal optima.
+- Luna role files request 1M; if the model catalog exposes a lower maximum, Codex may clamp the requested value.
 
 ---
 
@@ -66,10 +67,10 @@ Notes:
 
 Create these files under `~/.codex/agents/`.
 
-### `luna_scan.toml`
+### `luna_low.toml`
 
 ```toml
-name = "luna_scan"
+name = "luna_low"
 description = "Luna low: exact file/symbol lookup, references, and small factual searches. Read-only."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "low"
@@ -87,10 +88,10 @@ Do not spawn subagents or call other AI models.
 """
 ```
 
-### `luna_analyze.toml`
+### `luna_medium.toml`
 
 ```toml
-name = "luna_analyze"
+name = "luna_medium"
 description = "Luna medium: bounded call-flow, log, dependency and root-cause analysis. Read-only."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
@@ -108,10 +109,10 @@ Do not edit files or spawn subagents.
 """
 ```
 
-### `luna_quickfix.toml`
+### `luna_high.toml`
 
 ```toml
-name = "luna_quickfix"
+name = "luna_high"
 description = "Luna high: clear localized fixes, routine tests, and small refactors."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
@@ -155,7 +156,7 @@ Do not spawn subagents.
 
 ```toml
 name = "luna_review"
-description = "Luna high: independent review of diffs, behavior, regressions, and test coverage."
+description = "Luna review: independent review of diffs, behavior, regressions, and test coverage. Read-only."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
@@ -171,42 +172,21 @@ Do not edit source or tests. Do not spawn subagents.
 """
 ```
 
-### `luna_review_max.toml`
-
-```toml
-name = "luna_review_max"
-description = "Luna max: deep review of concurrency, state, recovery, and invariant risks."
-model = "gpt-5.6-luna"
-model_reasoning_effort = "max"
-plan_mode_reasoning_effort = "max"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
-sandbox_mode = "read-only"
-
-developer_instructions = """
-Investigate the specific difficult correctness risk independently.
-Examine invariants, interleavings, recovery paths, and counterexamples.
-Read the actual code and relevant tests rather than relying on summaries.
-Do not edit files or spawn subagents.
-Return supported defects, untested assumptions, and the smallest additional verification needed.
-"""
-```
-
 ---
 
-## 3. Built-in role aliases
+## 3. Canonical role set
 
-To keep built-in role names on Luna, create equivalent aliases:
+The active `~/.codex/agents/` directory contains exactly these five canonical Luna roles:
 
-| Role | Base | Effort |
-|---|---|---|
-| `default` | `luna_analyze` | medium |
-| `worker` | `luna_max` | max |
-| `explorer` | `luna_scan` | low |
+| Role | Effort | Context | Permissions |
+|---|---:|---:|---|
+| `luna_low` | low | 1M | read-only |
+| `luna_medium` | medium | 1M | read-only |
+| `luna_high` | high | 1M | workspace-write |
+| `luna_max` | max | 1M | workspace-write |
+| `luna_review` | high | 1M | read-only |
 
-Copy the corresponding role file, change only `name`, and optionally prefix the description with `Alias of ...`.
-
-If your setup already defines `reviewer`, map it to the same model/settings as `luna_review`.
+Do not add compatibility aliases to the active role directory unless a specific caller still requires one.
 
 ---
 
@@ -226,12 +206,11 @@ For important repository work, delegate one coherent unit to an existing suitabl
 Because Luna is low-cost, actively use a small number of parallel Luna workers when independent units can improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
 
 Choose the Luna role directly by task difficulty and permission needs:
-- `luna_scan`: low — exact searches and facts.
-- `luna_analyze`: medium — bounded flow/log/dependency analysis.
-- `luna_quickfix`: high — clear small fixes and routine tests.
+- `luna_low`: low — exact searches and facts.
+- `luna_medium`: medium — bounded flow/log/dependency analysis.
+- `luna_high`: high — clear small fixes and routine tests.
 - `luna_max`: max — substantive implementation and difficult debugging.
-- `luna_review`: high — normal independent review.
-- `luna_review_max`: max — targeted deep correctness review.
+- `luna_review`: high — independent review with read-only permissions.
 
 Do not run low → medium → high → max as mandatory stages.
 A Luna max worker performs ordinary searches required by its implementation.
@@ -240,7 +219,7 @@ Luna workers are leaves and do not spawn subagents.
 Prefer reusing the same Luna worker for related investigation, implementation, testing, and revisions.
 Do not close a useful worker between phases of the same coherent task.
 For unrelated or one-off work, start a fresh worker with only the needed task context.
-Do not fill the 1M window just because it is available.
+Do not fill the native Astra window or a Luna 1M window just because it is available.
 
 When the spawn API exposes history controls, choose them intentionally:
 - V2: `fork_turns = "none" | "all" | "<positive integer>"`
@@ -259,7 +238,7 @@ Use independent review when it materially improves correctness; do not create ce
 Do not claim unrun tests passed.
 
 GitHub routing:
-- Route important GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review_max` for independent review.
+- Route important GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review` for independent review.
 - Keep Astra to the minimum needed for task framing, final scope and safety approval, and execution of public repository creation, pushes, merges, and permission changes.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
@@ -275,7 +254,7 @@ Recommended behavior:
 
 | Situation | Context strategy |
 |---|---|
-| One-off file or symbol lookup | Fresh `luna_scan` with minimal task context |
+| One-off file or symbol lookup | Fresh `luna_low` with minimal task context |
 | Investigation → implementation → tests → revisions | Reuse the same Luna worker |
 | Related parallel task | Inherit only useful history when supported |
 | Unrelated task | Start fresh |
@@ -289,10 +268,10 @@ The goal is to minimize duplicated reasoning and re-exploration, not merely to m
 
 After applying the configuration, verify:
 
-1. Primary session runs Astra at the requested reasoning effort.
-2. `luna_scan` resolves to Luna/low.
-3. `luna_max` resolves to Luna/max.
-4. Requested context is `1_000_000` for the primary session and Luna roles.
+1. Primary session runs Astra with its native approximately 258K context.
+2. Each canonical Luna role requests a 1M context window.
+3. `luna_low` resolves to Luna/low.
+4. `luna_max` resolves to Luna/max.
 5. The effective runtime/model-catalog maximum is not lower than expected.
 6. Existing project/profile overrides do not silently replace the model or reasoning settings.
 7. Sol/Terra are not selected by the routing configuration.
@@ -303,7 +282,8 @@ Do not use the model's self-reported identity as the only verification source; p
 
 ## 7. Notes
 
-- A configured 1M context window does not guarantee that every Codex build/account exposes the full requested capacity.
+- Luna role files request a 1M context window; Astra uses its native approximately 258K context.
+- A requested context value does not guarantee that every Codex build/account exposes the full capacity.
 - Prompt/cache reuse is conditional and should not be assumed from thread reuse alone.
 - `AGENTS.md` is routing guidance, not a hard model allow-list or security boundary.
 - Keep permissions, provider settings, MCP configuration, and unrelated project configuration unchanged unless you intentionally manage them separately.
