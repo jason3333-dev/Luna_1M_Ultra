@@ -60,11 +60,15 @@ default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "max"
 max_concurrent_threads_per_session = 12
 max_depth = 1
+
+[features.multi_agent_v2]
+expose_spawn_agent_model_overrides = true
 ```
 
 Notes:
 
 - `max_depth` applies to older V1 multi-agent behavior. V2 may ignore it.
+- `expose_spawn_agent_model_overrides = true` makes `spawn_agent` model override controls visible to the orchestrator; it exposes configuration choices, not hidden chain-of-thought.
 - The global context and compaction request applies to Luna Max and all five canonical Luna roles.
 - The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 - The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
@@ -129,7 +133,7 @@ developer_instructions = """
 Implement the bounded change and run focused checks.
 Add regression coverage where appropriate.
 Continue investigation, testing, and revisions in this thread instead of splitting every step into a new worker.
-Report architectural ambiguity or high-risk changes to Astra.
+Report architectural ambiguity or high-risk changes to the primary Luna Max session; use an explicitly selected Astra escalation only when requested.
 Do not spawn subagents.
 """
 ```
@@ -148,8 +152,8 @@ developer_instructions = """
 Own a coherent engineering task from investigation through implementation, tests, and revisions.
 Reuse retained context and completed investigation.
 Do ordinary searches needed by the implementation yourself.
-If two materially different approaches fail without meaningful progress, report the exact unresolved question and evidence to Astra.
-After Astra decides, continue implementation and verification in this same thread.
+If two materially different approaches fail without meaningful progress, report the exact unresolved question and evidence to the primary Luna Max session.
+After the primary Luna Max session decides, continue implementation and verification in this same thread.
 Do not spawn subagents.
 """
 ```
@@ -190,6 +194,18 @@ Do not add compatibility aliases to the active role directory unless a specific 
 
 ---
 
+## Worker result metadata
+
+Every Luna worker final response begins with one metadata line using its configured values:
+
+```text
+[agent=luna_max model=gpt-5.6-luna reasoning=max plan_reasoning=max]
+```
+
+This line exposes configuration metadata only; it never exposes hidden chain-of-thought or private reasoning.
+
+---
+
 ## 4. `AGENTS.md` routing block for `Luna_1M_Ultra`
 
 Add this block to the active global or project `AGENTS.md`.
@@ -206,6 +222,8 @@ For important repository work, delegate one coherent unit to an existing suitabl
 The default delegated worker is `luna_max` with max reasoning. Use lower-effort roles only when the task explicitly warrants them.
 
 Use a small number of parallel Luna workers for independent units that improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
+
+Every Luna worker final response must begin with one metadata line in the form `[agent=<role> model=<model> reasoning=<effort> plan_reasoning=<plan_effort>]`, using its configured values. This line exposes configuration metadata only; never expose hidden chain-of-thought or private reasoning.
 
 Choose the Luna role directly by task difficulty and permission needs:
 - `luna_low`: low — exact searches and facts.
@@ -260,7 +278,7 @@ Recommended behavior:
 | Dependent investigation → implementation → revisions | Reuse the same Luna worker sequentially |
 | Independent investigation, test suite, or review | Dispatch concurrently to separate Luna workers |
 | Unrelated task | Start fresh |
-| Hard unresolved decision | Report the issue and evidence to Astra; do not add another manager model |
+| Hard unresolved decision | Report the issue and evidence to the primary Luna Max session; use Astra only when explicitly selected |
 
 The goal is to minimize duplicated reasoning and re-exploration, not merely to minimize raw Luna input tokens.
 

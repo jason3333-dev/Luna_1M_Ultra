@@ -42,6 +42,17 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
 - Separate read-only review roles
+- Visible worker result metadata for role, model, and reasoning effort
+
+## Worker result metadata
+
+Every Luna worker final response begins with one metadata line using its configured values:
+
+```text
+[agent=luna_max model=gpt-5.6-luna reasoning=max plan_reasoning=max]
+```
+
+This line exposes configuration metadata only; it never exposes hidden chain-of-thought or private reasoning.
 
 ## Setup
 
@@ -63,6 +74,9 @@ default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "max"
 max_concurrent_threads_per_session = 12
 max_depth = 1
+
+[features.multi_agent_v2]
+expose_spawn_agent_model_overrides = true
 ```
 
 The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. Each role uses the actual model ID `gpt-5.6-luna`; the `Luna_1M_Ultra` profile name must not replace it. The setup also defines Luna roles under:
@@ -75,6 +89,8 @@ The five role files under `~/.codex/agents/` inherit the global context and comp
 ├── luna_max.toml
 ├── luna_review.toml
 ```
+
+`expose_spawn_agent_model_overrides = true` makes `spawn_agent` model override controls visible to the orchestrator; it exposes configuration choices, not hidden chain-of-thought.
 
 ## Role selection
 
