@@ -44,7 +44,7 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 
 ## Setup
 
-See [Codex_Astra_Luna_1M_Setup.md](./Codex_Astra_Luna_1M_Setup.md).
+See [Luna_1M_Ultra_Setup.md](./Luna_1M_Ultra_Setup.md).
 
 At a minimum, the setup adds:
 
@@ -59,7 +59,7 @@ model_auto_compact_token_limit = 900_000
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
-default_subagent_reasoning_effort = "medium"
+default_subagent_reasoning_effort = "max"
 max_concurrent_threads_per_session = 12
 max_depth = 1
 ```
@@ -87,6 +87,9 @@ The five role files under `~/.codex/agents/` inherit the global context and comp
 
 These are **task classes, not sequential stages**.
 
+For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially: wait for the prerequisite result before dispatching the next step.
+The default delegated role is `luna_max` with max reasoning; use a lower-effort role only when the task explicitly warrants it.
+
 ## Context policy
 
 - Reuse an existing Luna worker for related work.
@@ -99,8 +102,8 @@ These are **task classes, not sequential stages**.
 ## GitHub routing
 
 - Important GitHub work is explicitly delegated to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing; reuse that worker when possible.
-- Luna/max is the default: `luna_max` handles repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; `luna_review` handles independent review.
-- Because Luna is low-cost, use a small number of parallel Luna workers proactively when independent work units improve turnaround or coverage; keep their scopes separate.
+- `luna_max` is the default delegated worker for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; use lower-effort roles only when the task explicitly warrants them, and use `luna_review` for independent review.
+- Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers; keep dependent work sequential and wait for its prerequisites.
 - Astra is limited to task framing, final scope and safety approval, and public repository creation, push, merge, or permission execution.
 - While Luna works, Astra does not repeat the same scope; independent work units may be delegated to Luna in parallel.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.

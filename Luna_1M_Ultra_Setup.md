@@ -1,4 +1,4 @@
-# Luna_1M_Ultra — Codex Astra + Luna Context Setup
+# Luna_1M_Ultra — Luna Max Setup Guide
 
 A minimal Codex multi-agent setup and prompt/routing profile named **Luna_1M_Ultra**, using **Astra as the primary orchestrator** and **Luna as the only delegated leaf worker model**.
 
@@ -34,6 +34,9 @@ Astra main (`gpt-6-astra`; global default request)
 ```
 
 There is no mandatory `low → medium → high → max` pipeline. Pick the role that matches the task.
+The default delegated role is `luna_max` with max reasoning; use a lower-effort role only when the task explicitly warrants it.
+
+For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for each prerequisite result before dispatching the next step.
 
 For difficult questions, Luna reports the unresolved issue back to the existing Astra session. Astra decides directly, then the same Luna worker can continue implementation and verification. Luna workers are leaves and do not spawn subagents.
 
@@ -54,7 +57,7 @@ model_auto_compact_token_limit = 900_000
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
-default_subagent_reasoning_effort = "medium"
+default_subagent_reasoning_effort = "max"
 max_concurrent_threads_per_session = 12
 max_depth = 1
 ```
@@ -198,9 +201,11 @@ Add this block to the active global or project `AGENTS.md`.
 Astra is the main session and owns orchestration, hard technical decisions, integration, and final acceptance.
 All delegated AI work uses Luna. Do not use Sol, Terra, or another Astra child.
 
-For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Delegate even when only one task can be parallelized; delegate independent units in parallel. While Luna works, Astra does not repeat the same scope.
+For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for prerequisite results before dispatching the next step. While Luna works, Astra does not repeat the same scope.
 
-Because Luna is low-cost, actively use a small number of parallel Luna workers when independent units can improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
+The default delegated worker is `luna_max` with max reasoning. Use lower-effort roles only when the task explicitly warrants them.
+
+Use a small number of parallel Luna workers for independent units that improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
 
 Choose the Luna role directly by task difficulty and permission needs:
 - `luna_low`: low — exact searches and facts.
@@ -235,7 +240,7 @@ Use independent review when it materially improves correctness; do not create ce
 Do not claim unrun tests passed.
 
 GitHub routing:
-- Route important GitHub work to Luna/max by default: use `luna_max` for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review` for independent review.
+- Route important GitHub work to the default `luna_max` worker: use it for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review` for independent review.
 - Keep Astra to the minimum needed for task framing, final scope and safety approval, and execution of public repository creation, pushes, merges, and permission changes.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
@@ -252,8 +257,8 @@ Recommended behavior:
 | Situation | Context strategy |
 |---|---|
 | One-off file or symbol lookup | Fresh `luna_low` with minimal task context |
-| Investigation → implementation → tests → revisions | Reuse the same Luna worker |
-| Related parallel task | Inherit only useful history when supported |
+| Dependent investigation → implementation → revisions | Reuse the same Luna worker sequentially |
+| Independent investigation, test suite, or review | Dispatch concurrently to separate Luna workers |
 | Unrelated task | Start fresh |
 | Hard unresolved decision | Report the issue and evidence to Astra; do not add another manager model |
 
