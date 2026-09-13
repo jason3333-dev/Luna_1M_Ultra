@@ -1,4 +1,4 @@
-# Codex Astra + Luna 1M Context Setup
+# Codex Astra + Luna Model-Max Context Setup
 
 A minimal Codex multi-agent setup using **Astra as the primary orchestrator** and **Luna as the only delegated worker model**.
 
@@ -10,21 +10,21 @@ The design goals are:
 - Select Luna reasoning effort by task complexity instead of running every task at `max`.
 - Reuse relevant Luna context across investigation, implementation, and verification.
 - Avoid unnecessary Sol/Terra handoffs and duplicated high-cost context.
-- Use Astra's native approximately 258K context and request a 1M context window for each Luna role.
+- Use Astra's native default context and request the maximum context allowed by the Codex model catalog for each Luna role.
 
-> The 1M value is requested for Luna roles. Astra uses its native approximately 258K context; effective limits are still bounded by the model catalog and installed Codex build.
+> Astra leaves context and compaction at Codex defaults. Each Luna role requests the maximum context allowed by the current Codex model catalog; effective limits are still bounded by the installed Codex build and account availability.
 
 ---
 
 ## Architecture
 
 ```text
-Astra main/native (~258K)
-├─ Luna Low      1M → file/symbol lookup, narrow searches
-├─ Luna Medium   1M → flow tracing, logs, dependency analysis
-├─ Luna High     1M → small fixes, routine tests
-├─ Luna Max      1M → substantive implementation, difficult debugging
-└─ Luna Review   1M → independent review
+Astra main/native (~258K default)
+├─ Luna Low      Codex max → file/symbol lookup, narrow searches
+├─ Luna Medium   Codex max → flow tracing, logs, dependency analysis
+├─ Luna High     Codex max → small fixes, routine tests
+├─ Luna Max      Codex max → substantive implementation, difficult debugging
+└─ Luna Review   Codex max → independent review
 ```
 
 There is no mandatory `low → medium → high → max` pipeline. Pick the role that matches the task.
@@ -43,10 +43,6 @@ model_reasoning_effort = "low"
 plan_mode_reasoning_effort = "low"
 review_model = "gpt-5.6-luna"
 
-model_context_window = 258_000
-model_auto_compact_token_limit = 240_000
-model_auto_compact_token_limit_scope = "total"
-
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
@@ -58,8 +54,8 @@ max_depth = 1
 Notes:
 
 - `max_depth` applies to older V1 multi-agent behavior. V2 may ignore it.
-- The 240K Astra and 900K Luna compaction thresholds are operating starting points, not universal optima.
-- Luna role files request 1M; if the model catalog exposes a lower maximum, Codex may clamp the requested value.
+- Astra context and compaction remain at Codex defaults.
+- Luna role files request the current Codex model maximum with its corresponding compaction limit; the catalog may lower that maximum.
 
 ---
 
@@ -75,8 +71,8 @@ description = "Luna low: exact file/symbol lookup, references, and small factual
 model = "gpt-5.6-luna"
 model_reasoning_effort = "low"
 plan_mode_reasoning_effort = "low"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 872_000
+model_auto_compact_token_limit = 828_400
 sandbox_mode = "read-only"
 
 developer_instructions = """
@@ -96,8 +92,8 @@ description = "Luna medium: bounded call-flow, log, dependency and root-cause an
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 plan_mode_reasoning_effort = "medium"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 872_000
+model_auto_compact_token_limit = 828_400
 sandbox_mode = "read-only"
 
 developer_instructions = """
@@ -117,8 +113,8 @@ description = "Luna high: clear localized fixes, routine tests, and small refact
 model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 872_000
+model_auto_compact_token_limit = 828_400
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
@@ -138,8 +134,8 @@ description = "Luna max: substantive implementation, difficult debugging, and mu
 model = "gpt-5.6-luna"
 model_reasoning_effort = "max"
 plan_mode_reasoning_effort = "max"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 872_000
+model_auto_compact_token_limit = 828_400
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
@@ -160,8 +156,8 @@ description = "Luna review: independent review of diffs, behavior, regressions, 
 model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
-model_context_window = 1_000_000
-model_auto_compact_token_limit = 900_000
+model_context_window = 872_000
+model_auto_compact_token_limit = 828_400
 sandbox_mode = "read-only"
 
 developer_instructions = """
@@ -180,11 +176,11 @@ The active `~/.codex/agents/` directory contains exactly these five canonical Lu
 
 | Role | Effort | Context | Permissions |
 |---|---:|---:|---|
-| `luna_low` | low | 1M | read-only |
-| `luna_medium` | medium | 1M | read-only |
-| `luna_high` | high | 1M | workspace-write |
-| `luna_max` | max | 1M | workspace-write |
-| `luna_review` | high | 1M | read-only |
+| `luna_low` | low | Codex max | read-only |
+| `luna_medium` | medium | Codex max | read-only |
+| `luna_high` | high | Codex max | workspace-write |
+| `luna_max` | max | Codex max | workspace-write |
+| `luna_review` | high | Codex max | read-only |
 
 Do not add compatibility aliases to the active role directory unless a specific caller still requires one.
 
@@ -219,7 +215,7 @@ Luna workers are leaves and do not spawn subagents.
 Prefer reusing the same Luna worker for related investigation, implementation, testing, and revisions.
 Do not close a useful worker between phases of the same coherent task.
 For unrelated or one-off work, start a fresh worker with only the needed task context.
-Do not fill the native Astra window or a Luna 1M window just because it is available.
+Do not fill the native-default Astra window or a Luna model-maximum window just because it is available.
 
 When the spawn API exposes history controls, choose them intentionally:
 - V2: `fork_turns = "none" | "all" | "<positive integer>"`
@@ -268,8 +264,8 @@ The goal is to minimize duplicated reasoning and re-exploration, not merely to m
 
 After applying the configuration, verify:
 
-1. Primary session runs Astra with its native approximately 258K context.
-2. Each canonical Luna role requests a 1M context window.
+1. Primary session runs Astra with the Codex native-default context (approximately 258K in this setup).
+2. Each canonical Luna role requests the maximum context allowed by the current Codex model catalog.
 3. `luna_low` resolves to Luna/low.
 4. `luna_max` resolves to Luna/max.
 5. The effective runtime/model-catalog maximum is not lower than expected.
@@ -282,7 +278,7 @@ Do not use the model's self-reported identity as the only verification source; p
 
 ## 7. Notes
 
-- Luna role files request a 1M context window; Astra uses its native approximately 258K context.
+- Luna role files request the maximum context allowed by the current Codex model catalog; Astra leaves context and compaction at Codex defaults.
 - A requested context value does not guarantee that every Codex build/account exposes the full capacity.
 - Prompt/cache reuse is conditional and should not be assumed from thread reuse alone.
 - `AGENTS.md` is routing guidance, not a hard model allow-list or security boundary.

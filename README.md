@@ -1,4 +1,4 @@
-# Codex Astra + Luna 1M
+# Codex Astra + Luna Model-Max Context
 
 A lightweight Codex multi-agent configuration built around two models only:
 
@@ -15,11 +15,11 @@ This configuration keeps the hierarchy simple:
 
 ```text
 Astra main/native (~258K)
-├─ Luna Low      1M → search / lookup
-├─ Luna Medium   1M → analysis
-├─ Luna High     1M → small fixes / routine tests
-├─ Luna Max      1M → implementation / difficult debugging
-└─ Luna Review   1M → independent review
+├─ Luna Low      Codex max → search / lookup
+├─ Luna Medium   Codex max → analysis
+├─ Luna High     Codex max → small fixes / routine tests
+├─ Luna Max      Codex max → implementation / difficult debugging
+└─ Luna Review   Codex max → independent review
 ```
 
 Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Astra stays focused on decisions that benefit from already having the main-session context.
@@ -28,9 +28,9 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 
 - Astra as the single top-level orchestrator
 - Luna-only delegated agents
-- Astra native context of approximately 258K
-- Five task-based Luna roles at 1M requested context: `low`, `medium`, `high`, `max`, and `review`
-- 240K starting point for Astra auto-compaction and 900K for Luna roles
+- Astra native-default context of approximately 258K
+- Five task-based Luna roles at the current Codex model maximum: `low`, `medium`, `high`, `max`, and `review`
+- Codex-default context and compaction for Astra; catalog-maximum context and compaction for Luna roles
 - Context reuse across investigation → implementation → testing → revision
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
@@ -47,8 +47,6 @@ model = "gpt-6-astra"
 model_reasoning_effort = "low"
 plan_mode_reasoning_effort = "low"
 review_model = "gpt-5.6-luna"
-model_context_window = 258_000
-model_auto_compact_token_limit = 240_000
 
 [agents]
 enabled = true
@@ -72,11 +70,11 @@ and defines Luna roles under:
 
 | Role | Effort | Context | Use case |
 |---|---:|---:|---|
-| `luna_low` | low | 1M | file/symbol lookup, exact searches |
-| `luna_medium` | medium | 1M | flow tracing, logs, dependencies |
-| `luna_high` | high | 1M | small fixes, routine tests |
-| `luna_max` | max | 1M | substantive implementation, hard debugging |
-| `luna_review` | high | 1M | independent review |
+| `luna_low` | low | Codex max | file/symbol lookup, exact searches |
+| `luna_medium` | medium | Codex max | flow tracing, logs, dependencies |
+| `luna_high` | high | Codex max | small fixes, routine tests |
+| `luna_max` | max | Codex max | substantive implementation, hard debugging |
+| `luna_review` | high | Codex max | independent review |
 
 These are **task classes, not sequential stages**.
 
@@ -85,7 +83,7 @@ These are **task classes, not sequential stages**.
 - Reuse an existing Luna worker for related work.
 - Start fresh for unrelated one-off tasks.
 - Do not force an empty context just to save inexpensive Luna input tokens.
-- Do not fill the native Astra window or a Luna 1M window simply because it exists.
+- Do not fill the native-default Astra window or a Luna model-maximum window simply because it exists.
 - If Luna reaches a genuinely hard unresolved decision, send the evidence back to Astra instead of adding another manager model.
 
 ## GitHub routing
@@ -99,7 +97,7 @@ These are **task classes, not sequential stages**.
 
 ## Compatibility note
 
-Luna role files request `model_context_window = 1_000_000`; Astra uses its native context of approximately 258K. Effective limits can still be lower because of the installed Codex build, model catalog, account availability, or project/profile overrides.
+Luna role files request the maximum context allowed by the current Codex model catalog; Astra leaves context and compaction at Codex defaults (approximately 258K native context in this setup). Effective limits can still be lower because of the installed Codex build, account availability, or project/profile overrides.
 
 ## License
 
