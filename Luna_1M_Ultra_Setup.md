@@ -1,6 +1,6 @@
 # Luna_1M_Ultra — Luna Max Setup Guide
 
-A minimal Codex multi-agent setup and prompt/routing profile named **Luna_1M_Ultra**, using **Astra as the primary orchestrator** and **Luna as the only delegated leaf worker model**.
+A minimal Codex multi-agent setup and prompt/routing profile named **Luna_1M_Ultra**, using **Luna Max (`gpt-5.6-luna` with max reasoning) as the primary/default session and delegated worker**.
 
 `Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual alias for this operating profile: its prompts, role selection, context defaults, and routing make the real Luna workers operate in an imagined ultra-tier mode. It is not a Codex model ID or an official model offering. The real model remains `gpt-5.6-luna`, and Luna `model` fields must continue to use that ID.
 
@@ -8,24 +8,24 @@ This repository is an independent public clone of the profile documentation, not
 
 The design goals are:
 
-- Keep orchestration and hard technical decisions in Astra (`gpt-6-astra`).
-- Use only `gpt-5.6-luna` for Luna exploration, implementation, debugging, testing, and review.
+- Keep orchestration and hard technical decisions in Luna Max (`gpt-5.6-luna` with max reasoning).
+- Use `gpt-5.6-luna` for the primary session and all Luna exploration, implementation, debugging, testing, and review.
 - Because Luna is low-cost, use parallel Luna workers proactively when independent work units can improve turnaround or coverage.
 - Select Luna reasoning effort by task complexity instead of running every task at `max`.
 - Reuse relevant Luna context across investigation, implementation, and verification.
-- Keep Luna workers as leaves; do not use Sol/Terra handoffs or Astra child sessions.
-- Request the global context and compaction defaults for Astra and all five Luna roles; the current model catalog may clamp those requests.
+- Keep Luna workers as leaves; do not use Sol/Terra handoffs or Astra child sessions. Astra remains an optional explicit escalation, not the default model.
+- Request the global context and compaction defaults for Luna Max and all five Luna roles; the current model catalog may clamp those requests.
 
-> The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` as the default. All five canonical Luna roles inherit these settings. The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
+> The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` as the default for Luna Max and all five canonical Luna roles. The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 
-> The name `Luna_1M_Ultra` does not change the model configuration: use `gpt-6-astra` for the main session and `gpt-5.6-luna` for every Luna role. Do not substitute a made-up “Luna Ultra” model ID.
+> The name `Luna_1M_Ultra` does not change the model configuration: use `gpt-5.6-luna` with max reasoning for the primary session and every Luna role. Do not substitute a made-up “Luna Ultra” model ID.
 
 ---
 
 ## Architecture
 
 ```text
-Astra main (`gpt-6-astra`; global default request)
+Luna Max primary (`gpt-5.6-luna`; max reasoning)
 ├─ Luna Low (`gpt-5.6-luna`)      → file/symbol lookup, narrow searches
 ├─ Luna Medium (`gpt-5.6-luna`)   → flow tracing, logs, dependency analysis
 ├─ Luna High (`gpt-5.6-luna`)     → small fixes, routine tests
@@ -38,7 +38,7 @@ The default delegated role is `luna_max` with max reasoning; use a lower-effort 
 
 For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for each prerequisite result before dispatching the next step.
 
-For difficult questions, Luna reports the unresolved issue back to the existing Astra session. Astra decides directly, then the same Luna worker can continue implementation and verification. Luna workers are leaves and do not spawn subagents.
+For difficult questions, Luna Max reports the unresolved issue to an explicitly selected Astra escalation when needed. Luna Max decides directly by default, then the same Luna worker can continue implementation and verification. Luna workers are leaves and do not spawn subagents.
 
 ---
 
@@ -47,9 +47,9 @@ For difficult questions, Luna reports the unresolved issue back to the existing 
 Merge the following into `~/.codex/config.toml` or the active Codex configuration.
 
 ```toml
-model = "gpt-6-astra"
-model_reasoning_effort = "low"
-plan_mode_reasoning_effort = "low"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "max"
+plan_mode_reasoning_effort = "max"
 review_model = "gpt-5.6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
@@ -65,9 +65,9 @@ max_depth = 1
 Notes:
 
 - `max_depth` applies to older V1 multi-agent behavior. V2 may ignore it.
-- The global context and compaction request applies to Astra and all five canonical Luna roles.
+- The global context and compaction request applies to Luna Max and all five canonical Luna roles.
 - The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
-- The profile name is not a replacement for a model ID: the main model is `gpt-6-astra` and the Luna model is `gpt-5.6-luna`.
+- The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
 
 ---
 
@@ -196,12 +196,12 @@ Add this block to the active global or project `AGENTS.md`.
 
 ```markdown
 <!-- BEGIN ASTRA_LUNA_1M -->
-## Astra + Luna routing
+## Luna Max routing
 
-Astra is the main session and owns orchestration, hard technical decisions, integration, and final acceptance.
-All delegated AI work uses Luna. Do not use Sol, Terra, or another Astra child.
+Luna Max is the primary/default session and owns orchestration, hard technical decisions, integration, and final acceptance.
+All delegated AI work uses Luna. Astra is an optional explicit escalation, not the default primary model. Do not use Sol, Terra, or Astra child sessions.
 
-For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for prerequisite results before dispatching the next step. While Luna works, Astra does not repeat the same scope.
+For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for prerequisite results before dispatching the next step. While workers run, Luna Max does not repeat the same scope.
 
 The default delegated worker is `luna_max` with max reasoning. Use lower-effort roles only when the task explicitly warrants them.
 
@@ -228,11 +228,11 @@ When the spawn API exposes history controls, choose them intentionally:
 - V1: `fork_context = false | true`
 Never send both forms in the same spawn call.
 
-After two materially different failed approaches without progress, Luna reports the exact unresolved question to Astra.
-Astra decides directly, then the same Luna worker continues implementation and verification.
+After two materially different failed approaches without progress, Luna reports the exact unresolved question to Luna Max.
+Luna Max decides directly by default, then the same Luna worker continues implementation and verification. An explicitly selected Astra escalation may decide only when requested.
 Escalate security or data-loss risks immediately.
 
-Astra may act directly only for simple answers, tiny obvious work, judgments requiring the full main-session context, or a concrete technical or permission blocker to delegation. Do not skip delegation merely because Astra can do the work.
+Luna Max may act directly for simple answers, tiny obvious work, judgments requiring the full primary-session context, or a concrete technical or permission blocker to delegation. Do not skip delegation merely because the primary session can do the work.
 
 Use a small useful number of independent workers.
 Do not let multiple workers edit the same file concurrently.
@@ -241,7 +241,7 @@ Do not claim unrun tests passed.
 
 GitHub routing:
 - Route important GitHub work to the default `luna_max` worker: use it for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review` for independent review.
-- Keep Astra to the minimum needed for task framing, final scope and safety approval, and execution of public repository creation, pushes, merges, and permission changes.
+- Keep optional Astra escalations to the minimum needed for explicitly requested hard decisions or public repository operations; Luna Max remains the default owner.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
 ```
@@ -270,13 +270,13 @@ The goal is to minimize duplicated reasoning and re-exploration, not merely to m
 
 After applying the configuration, verify:
 
-1. Primary session uses `gpt-6-astra` and requests the global `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` defaults.
+1. Primary session uses `gpt-5.6-luna` with max reasoning and requests the global `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` defaults.
 2. Each canonical Luna role inherits those global context and compaction settings without role-specific overrides.
 3. `luna_low` resolves to `gpt-5.6-luna`/low.
 4. `luna_max` resolves to `gpt-5.6-luna`/max.
 5. If the local catalog clamps the request, it reports `max_context_window = 872_000` and an effective runtime compaction limit of `828_400`.
 6. Existing project/profile overrides do not silently replace the model or reasoning settings.
-7. Sol/Terra and Astra child sessions are not selected by the routing configuration.
+7. Sol/Terra and Astra child sessions are not selected by default in the routing configuration.
 8. `Luna_1M_Ultra` remains a conceptual prompt/routing alias and is not used as a `model` value.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
@@ -285,7 +285,7 @@ Do not use the model's self-reported identity as the only verification source; p
 
 ## 7. `Luna_1M_Ultra` notes
 
-- The global configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000`; all five Luna roles inherit those settings.
+- The global configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for Luna Max; all five Luna roles inherit those settings.
 - The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 - A requested context value does not guarantee that every Codex build/account exposes the full capacity.
 - Prompt/cache reuse is conditional and should not be assumed from thread reuse alone.

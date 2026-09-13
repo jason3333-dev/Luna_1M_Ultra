@@ -1,15 +1,15 @@
 # Luna_1M_Ultra
 
-A lightweight Codex multi-agent configuration and prompt/routing profile built around two actual models only:
+A lightweight Codex multi-agent configuration and prompt/routing profile built around Luna Max as the primary model:
 
-- **Astra** — the `gpt-6-astra` main session for orchestration, hard technical decisions, integration, and final acceptance
-- **Luna** — `gpt-5.6-luna` delegated leaf workers for exploration, implementation, debugging, testing, and review
+- **Luna Max** — the `gpt-5.6-luna` default primary session with max reasoning for orchestration, implementation, debugging, testing, and review
+- **Astra** — an optional `gpt-6-astra` escalation for explicitly selected hard decisions or final acceptance; it is not the default
 
 `Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual profile name for the prompt, role, context, and routing behavior described here. It is not a Codex model ID or an official model offering. The actual Luna model remains `gpt-5.6-luna`; only that real model ID belongs in Luna `model` fields.
 
 This repository is an independent public clone of the profile documentation, not a same-account Git fork.
 
-The profile keeps Astra as the main session, uses Luna workers as leaves, avoids Sol/Terra handoff layers and Astra child sessions, and reuses Luna context where it is useful.
+The profile keeps Luna Max as the primary session and default worker, uses Luna workers as leaves, avoids Sol/Terra handoff layers and Astra child sessions, and reuses Luna context where it is useful.
 
 ## Why this setup
 
@@ -18,7 +18,7 @@ A common multi-agent pattern adds multiple model tiers between orchestration and
 This configuration keeps the hierarchy simple:
 
 ```text
-Astra main (`gpt-6-astra`; global default)
+Luna Max primary (`gpt-5.6-luna`; max reasoning)
 ├─ Luna Low (`gpt-5.6-luna`)      → search / lookup
 ├─ Luna Medium (`gpt-5.6-luna`)   → analysis
 ├─ Luna High (`gpt-5.6-luna`)     → small fixes / routine tests
@@ -26,12 +26,13 @@ Astra main (`gpt-6-astra`; global default)
 └─ Luna Review (`gpt-5.6-luna`)   → independent review
 ```
 
-Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Astra stays focused on decisions that benefit from already having the main-session context.
+Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Luna Max stays focused on decisions that benefit from the primary-session context.
 
 ## Features
 
-- Astra as the single top-level orchestrator
+- Luna Max as the single top-level orchestrator
 - Luna-only delegated leaf agents
+- Astra as an optional, explicitly selected escalation rather than the default primary model
 - No Sol/Terra workers and no Astra child sessions
 - `Luna_1M_Ultra` as a conceptual prompt/routing profile, not a model ID
 - Global default request of `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000`
@@ -49,9 +50,9 @@ See [Luna_1M_Ultra_Setup.md](./Luna_1M_Ultra_Setup.md).
 At a minimum, the setup adds:
 
 ```toml
-model = "gpt-6-astra"
-model_reasoning_effort = "low"
-plan_mode_reasoning_effort = "low"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "max"
+plan_mode_reasoning_effort = "max"
 review_model = "gpt-5.6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
@@ -97,20 +98,20 @@ The default delegated role is `luna_max` with max reasoning; use a lower-effort 
 - Do not force an empty context just to save inexpensive Luna input tokens.
 - Do not fill the global default context window simply because it exists.
 - Keep Luna workers as leaves; they do not spawn subagents.
-- If Luna reaches a genuinely hard unresolved decision, send the evidence back to Astra instead of adding another manager model.
+- If Luna Max reaches a genuinely hard unresolved decision, send the evidence to an explicitly selected Astra escalation instead of adding another manager model.
 
 ## GitHub routing
 
 - Important GitHub work is explicitly delegated to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing; reuse that worker when possible.
 - `luna_max` is the default delegated worker for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; use lower-effort roles only when the task explicitly warrants them, and use `luna_review` for independent review.
 - Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers; keep dependent work sequential and wait for its prerequisites.
-- Astra is limited to task framing, final scope and safety approval, and public repository creation, push, merge, or permission execution.
-- While Luna works, Astra does not repeat the same scope; independent work units may be delegated to Luna in parallel.
+- Luna Max owns task framing, final scope, integration, and acceptance; an explicitly selected Astra escalation may handle hard decisions or public repository operations.
+- While workers run, Luna Max does not repeat the same scope; independent work units may be delegated to Luna in parallel.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 
 ## Compatibility note
 
-The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for Astra and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings. This clamp is runtime behavior, not a new model named “Luna Ultra.”
+The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for the Luna Max primary session and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings. This clamp is runtime behavior, not a new model named “Luna Ultra.”
 
 ## License
 
