@@ -55,6 +55,7 @@ model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
 
 [desktop]
+followUpQueueMode = "stack"
 enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
 
 [tui]
@@ -81,6 +82,7 @@ Notes:
 - The desktop reasoning-effort availability list must include `max`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]`.
 - `max` is a reasoning effort exposed by the model picker, not a separate model ID; keep model fields set to the real model ID `gpt-5.6-luna`.
 - The TUI footer uses `status_line = ["model-with-reasoning", "context-remaining", "current-dir"]`; `context-remaining` enables the context-usage display.
+- `followUpQueueMode = "stack"` makes additional prompt input queue in order instead of steering the active follow-up.
 
 ---
 
@@ -293,6 +295,7 @@ After applying the configuration, verify:
 8. `Luna_1M_Ultra` remains a conceptual prompt/routing alias and is not used as a `model` value.
 9. The desktop reasoning-effort availability list includes `max`.
 10. The TUI footer includes the `context-remaining` item.
+11. Desktop follow-up prompt input uses `stack` mode.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
 

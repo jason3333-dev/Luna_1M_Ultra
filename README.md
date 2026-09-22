@@ -58,6 +58,7 @@ model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
 
 [desktop]
+followUpQueueMode = "stack"
 enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
 
 [tui]
@@ -90,6 +91,8 @@ The five role files under `~/.codex/agents/` inherit the global context and comp
 The desktop reasoning-effort availability list includes `max`. This enables the maximum reasoning option in the model picker; `max` is a reasoning effort, not a separate model ID. The model itself remains `gpt-5.6-luna`.
 
 The TUI footer displays the active model/reasoning, remaining context, and current directory. The `context-remaining` item enables the context-usage UI.
+
+New follow-up prompts use desktop `stack` mode by default, so additional prompt input is queued in order.
 
 ## Role selection
 
