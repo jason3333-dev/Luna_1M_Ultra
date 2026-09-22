@@ -57,6 +57,9 @@ model_auto_compact_token_limit = 900_000
 [desktop]
 enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
 
+[tui]
+status_line = ["model-with-reasoning", "context-remaining", "current-dir"]
+
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
@@ -77,6 +80,7 @@ Notes:
 - The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
 - The desktop reasoning-effort availability list must include `max`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]`.
 - `max` is a reasoning effort exposed by the model picker, not a separate model ID; keep model fields set to the real model ID `gpt-5.6-luna`.
+- The TUI footer uses `status_line = ["model-with-reasoning", "context-remaining", "current-dir"]`; `context-remaining` enables the context-usage display.
 
 ---
 
@@ -288,6 +292,7 @@ After applying the configuration, verify:
 7. Sol/Terra and Astra child sessions are not selected by default in the routing configuration.
 8. `Luna_1M_Ultra` remains a conceptual prompt/routing alias and is not used as a `model` value.
 9. The desktop reasoning-effort availability list includes `max`.
+10. The TUI footer includes the `context-remaining` item.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
 
