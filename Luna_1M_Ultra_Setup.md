@@ -56,7 +56,7 @@ model_auto_compact_token_limit = 900_000
 
 [desktop]
 followUpQueueMode = "stack"
-enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
+enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max", "ultra"]
 
 [tui]
 status_line = ["model-with-reasoning", "context-remaining", "current-dir"]
@@ -79,8 +79,9 @@ Notes:
 - The global context and compaction request applies to Luna Max and all five canonical Luna roles.
 - The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 - The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
-- The desktop reasoning-effort availability list must include `max`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]`.
+- The desktop reasoning-effort availability list includes `max` and `ultra`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max", "ultra"]`.
 - `max` is a reasoning effort exposed by the model picker, not a separate model ID; keep model fields set to the real model ID `gpt-5.6-luna`.
+- The availability list also includes `ultra` for models that support it, including Astra; the canonical Luna roles remain at `max`.
 - The TUI footer uses `status_line = ["model-with-reasoning", "context-remaining", "current-dir"]`; `context-remaining` enables the context-usage display.
 - `followUpQueueMode = "stack"` makes additional prompt input queue in order instead of steering the active follow-up.
 
@@ -294,8 +295,9 @@ After applying the configuration, verify:
 7. Sol/Terra and Astra child sessions are not selected by default in the routing configuration.
 8. `Luna_1M_Ultra` remains a conceptual prompt/routing alias and is not used as a `model` value.
 9. The desktop reasoning-effort availability list includes `max`.
-10. The TUI footer includes the `context-remaining` item.
-11. Desktop follow-up prompt input uses `stack` mode.
+10. The desktop reasoning-effort availability list includes `ultra` and the active model supports it before selecting it.
+11. The TUI footer includes the `context-remaining` item.
+12. Desktop follow-up prompt input uses `stack` mode.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
 
