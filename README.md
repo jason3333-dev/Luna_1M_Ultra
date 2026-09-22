@@ -2,10 +2,10 @@
 
 A lightweight Codex multi-agent configuration and prompt/routing profile built around Luna Max as the primary model:
 
-- **Luna Max** — the `gpt-5.6-luna` default primary session with max reasoning for orchestration, implementation, debugging, testing, and review
+- **Luna Max** — the `gpt-6-luna` default primary session with max reasoning for orchestration, implementation, debugging, testing, and review
 - **Astra** — an optional `gpt-6-astra` escalation for explicitly selected hard decisions or final acceptance; it is not the default
 
-`Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual profile name for the prompt, role, context, and routing behavior described here. It is not a Codex model ID or an official model offering. The actual Luna model remains `gpt-5.6-luna`; only that real model ID belongs in Luna `model` fields.
+`Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual profile name for the prompt, role, context, and routing behavior described here. It is not a Codex model ID or an official model offering. Use the actual model ID `gpt-6-luna` in Luna `model` fields. The published GPT-6 Luna reasoning efforts are `none`, `low`, `medium`, `high`, `xhigh`, and `max`; it does not list `ultra`. Keep `ultra` in the desktop availability list only for other models that support it. See the [official GPT-6 Luna model documentation](https://developers.openai.com/api/docs/models/gpt-6-luna).
 
 This repository is an independent public clone of the profile documentation, not a same-account Git fork.
 
@@ -18,12 +18,12 @@ A common multi-agent pattern adds multiple model tiers between orchestration and
 This configuration keeps the hierarchy simple:
 
 ```text
-Luna Max primary (`gpt-5.6-luna`; max reasoning)
-├─ Luna Low (`gpt-5.6-luna`)      → search / lookup
-├─ Luna Medium (`gpt-5.6-luna`)   → analysis
-├─ Luna High (`gpt-5.6-luna`)     → small fixes / routine tests
-├─ Luna Max (`gpt-5.6-luna`)      → implementation / difficult debugging
-└─ Luna Review (`gpt-5.6-luna`)   → independent review
+Luna Max primary (`gpt-6-luna`; max reasoning)
+├─ Luna Low (`gpt-6-luna`)      → search / lookup
+├─ Luna Medium (`gpt-6-luna`)   → analysis
+├─ Luna High (`gpt-6-luna`)     → small fixes / routine tests
+├─ Luna Max (`gpt-6-luna`)      → implementation / difficult debugging
+└─ Luna Review (`gpt-6-luna`)   → independent review
 ```
 
 Luna is inexpensive enough that retaining useful working context can be more efficient than repeatedly rebuilding it. Luna Max stays focused on decisions that benefit from the primary-session context.
@@ -37,7 +37,7 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 - `Luna_1M_Ultra` as a conceptual prompt/routing profile, not a model ID
 - Global default request of `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000`
 - Five task-based Luna roles inheriting the global context and compaction default: `low`, `medium`, `high`, `max`, and `review`
-- The local model catalog may clamp the request to `max_context_window = 872_000`, with an effective runtime compaction limit of `828_400`
+- The published GPT-6 Luna context window is 1.05M tokens; this profile requests 1M, while the active Codex runtime may expose a smaller context window
 - Context reuse across investigation → implementation → testing → revision
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
@@ -45,15 +45,15 @@ Luna is inexpensive enough that retaining useful working context can be more eff
 
 ## Setup
 
-See [Luna_1M_Ultra_Setup.md](./Luna_1M_Ultra_Setup.md).
+See [Luna_1M_Ultra_Setup.md](./Luna_1M_Ultra_Setup.md). Existing GPT-5.6 installs can follow the migration notes in that guide.
 
 At a minimum, the setup adds:
 
 ```toml
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "max"
 plan_mode_reasoning_effort = "max"
-review_model = "gpt-5.6-luna"
+review_model = "gpt-6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
 
@@ -66,7 +66,7 @@ status_line = ["model-with-reasoning", "context-remaining", "current-dir"]
 
 [agents]
 enabled = true
-default_subagent_model = "gpt-5.6-luna"
+default_subagent_model = "gpt-6-luna"
 default_subagent_reasoning_effort = "max"
 max_concurrent_threads_per_session = 12
 max_depth = 1
@@ -75,7 +75,7 @@ max_depth = 1
 expose_spawn_agent_model_overrides = true
 ```
 
-The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. Each role uses the actual model ID `gpt-5.6-luna`; the `Luna_1M_Ultra` profile name must not replace it. The setup also defines Luna roles under:
+The five role files under `~/.codex/agents/` inherit the global context and compaction settings above; they do not override either setting. Each role uses the actual model ID `gpt-6-luna`; the `Luna_1M_Ultra` profile name must not replace it. The setup also defines Luna roles under:
 
 ```text
 ~/.codex/agents/
@@ -88,9 +88,9 @@ The five role files under `~/.codex/agents/` inherit the global context and comp
 
 `expose_spawn_agent_model_overrides = true` makes `spawn_agent` model override controls visible to the orchestrator; it exposes configuration choices, not hidden chain-of-thought.
 
-The desktop reasoning-effort availability list includes `max`. This enables the maximum reasoning option in the model picker; `max` is a reasoning effort, not a separate model ID. The model itself remains `gpt-5.6-luna`.
+The desktop reasoning-effort availability list includes `max`. This enables the maximum reasoning option in the model picker; `max` is a reasoning effort, not a separate model ID. The model itself remains `gpt-6-luna`.
 
-The same availability list includes `ultra` for models that support it, including Astra. The canonical Luna roles remain at `max` because their model catalog supports `max` but not `ultra`.
+The same availability list can include `ultra` for other models that support it. GPT-6 Luna does not list `ultra` as a supported reasoning effort, so the canonical Luna roles stay at `max`.
 
 The TUI footer displays the active model/reasoning, remaining context, and current directory. The `context-remaining` item enables the context-usage UI.
 
@@ -148,7 +148,7 @@ The supplied Pro 5X observation is approximately 1% of the weekly usage window p
 
 ## Compatibility note
 
-The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for the Luna Max primary session and all five canonical Luna roles. The current local model catalog may clamp that request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`. Role files do not override these settings. This clamp is runtime behavior, not a new model named “Luna Ultra.”
+The global Codex configuration requests `model_context_window = 1_000_000` and `model_auto_compact_token_limit = 900_000` for the GPT-6 Luna primary session and all five canonical Luna roles. The published model context window is 1.05M tokens, but the Codex runtime or account may expose a smaller effective window; inspect the active session instead of assuming the model maximum. Role files do not override these settings. “Luna Ultra” remains a profile name, not a model or reasoning-effort value.
 
 ## License
 
