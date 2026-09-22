@@ -109,6 +109,23 @@ These are **task classes, not sequential stages**.
 For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially: wait for the prerequisite result before dispatching the next step.
 The default delegated role is `luna_max` with max reasoning; use a lower-effort role only when the task explicitly warrants it.
 
+## Parallel execution use cases
+
+The attached run snapshot shows six independent work units active concurrently. This is an example of task decomposition, not six predefined agent types and not a request to change the model configuration.
+
+![Six parallel Luna Max work units](./parallel-luna-max-run.png)
+
+| Work unit | Use case | Observed duration |
+|---|---|---:|
+| Core gate | Planning-focused test with a temporary vendor symlink | 2m 48s |
+| Operator review | Analyze race conditions between halt and resume | 6m 17s |
+| Fill execution p1 | Review canonical delivery identity logic | 11m 11s |
+| Accounting p1 | Identify a potential filename-parsing bug | 6m 44s |
+| Pair machine p1 | Analyze the impact of an external increase | 11m 46s |
+| Candidate p1 | Assess parent-communication options | 10m 58s |
+
+The supplied Pro 5X observation is approximately 1% of the weekly usage window per five minutes during this kind of burst. Treat it as an observed planning reference, not an official quota, billing promise, or guaranteed rate.
+
 ## Context policy
 
 - Reuse an existing Luna worker for related work.
