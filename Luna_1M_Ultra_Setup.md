@@ -53,6 +53,7 @@ plan_mode_reasoning_effort = "max"
 review_model = "gpt-5.6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
+show-context-window-usage = true
 
 [desktop]
 followUpQueueMode = "stack"
@@ -80,9 +81,11 @@ Notes:
 - The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 - The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
 - The desktop reasoning-effort availability list includes `max` and `ultra`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max", "ultra"]`.
+- Both `max` and `ultra` are explicitly enabled in the model picker; `max` is the standard maximum effort and `ultra` is available when the selected model supports it.
 - `max` is a reasoning effort exposed by the model picker, not a separate model ID; keep model fields set to the real model ID `gpt-5.6-luna`.
 - The availability list also includes `ultra` for models that support it, including Astra; the canonical Luna roles remain at `max`.
 - The TUI footer uses `status_line = ["model-with-reasoning", "context-remaining", "current-dir"]`; `context-remaining` enables the context-usage display.
+- `show-context-window-usage = true` enables the context-window usage indicator in the app composer; this is separate from the terminal TUI footer setting.
 - `followUpQueueMode = "stack"` makes additional prompt input queue in order instead of steering the active follow-up.
 
 ---
@@ -298,6 +301,7 @@ After applying the configuration, verify:
 10. The desktop reasoning-effort availability list includes `ultra` and the active model supports it before selecting it.
 11. The TUI footer includes the `context-remaining` item.
 12. Desktop follow-up prompt input uses `stack` mode.
+13. The app composer context-window usage indicator is enabled.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
 
