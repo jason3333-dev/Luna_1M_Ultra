@@ -57,6 +57,9 @@ review_model = "gpt-5.6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
 
+[desktop]
+enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
+
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
@@ -80,6 +83,8 @@ The five role files under `~/.codex/agents/` inherit the global context and comp
 ```
 
 `expose_spawn_agent_model_overrides = true` makes `spawn_agent` model override controls visible to the orchestrator; it exposes configuration choices, not hidden chain-of-thought.
+
+The desktop reasoning-effort availability list includes `max`. This enables the maximum reasoning option in the model picker; `max` is a reasoning effort, not a separate model ID. The model itself remains `gpt-5.6-luna`.
 
 ## Role selection
 

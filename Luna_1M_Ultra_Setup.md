@@ -54,6 +54,9 @@ review_model = "gpt-5.6-luna"
 model_context_window = 1_000_000
 model_auto_compact_token_limit = 900_000
 
+[desktop]
+enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]
+
 [agents]
 enabled = true
 default_subagent_model = "gpt-5.6-luna"
@@ -72,6 +75,8 @@ Notes:
 - The global context and compaction request applies to Luna Max and all five canonical Luna roles.
 - The current local model catalog may clamp the request to `max_context_window = 872_000` with an effective runtime compaction limit of `828_400`.
 - The profile name is not a replacement for a model ID: the primary model is `gpt-5.6-luna` with max reasoning.
+- The desktop reasoning-effort availability list must include `max`: `enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "persistent", "max"]`.
+- `max` is a reasoning effort exposed by the model picker, not a separate model ID; keep model fields set to the real model ID `gpt-5.6-luna`.
 
 ---
 
@@ -282,6 +287,7 @@ After applying the configuration, verify:
 6. Existing project/profile overrides do not silently replace the model or reasoning settings.
 7. Sol/Terra and Astra child sessions are not selected by default in the routing configuration.
 8. `Luna_1M_Ultra` remains a conceptual prompt/routing alias and is not used as a `model` value.
+9. The desktop reasoning-effort availability list includes `max`.
 
 Do not use the model's self-reported identity as the only verification source; prefer actual session/model metadata when available.
 
