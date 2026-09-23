@@ -1,5 +1,7 @@
 # Luna_1M_Ultra
 
+[English](./README.md) | [한국어](./README.kr.md)
+
 A lightweight Codex multi-agent configuration and prompt/routing profile built around GPT-6 Luna as the primary model:
 
 - **Luna Max** — the `gpt-6-luna` primary and default worker, using max reasoning for orchestration, implementation, debugging, testing, and review
@@ -9,7 +11,9 @@ A lightweight Codex multi-agent configuration and prompt/routing profile built a
 
 This repository is an independent public clone of the profile documentation, not a same-account Git fork.
 
-The profile keeps GPT-6 Luna as the primary session and default delegated model. It uses four predefined Luna roles as leaf workers and allows the main model to invoke them when useful.
+Every document in this repository has a Korean counterpart. Markdown translations use the `.kr.md` suffix; `LICENSE.kr` is an unofficial translation, and the English license remains authoritative.
+
+The profile keeps GPT-6 Luna as the primary session and default delegated model. It uses four predefined Luna roles as leaf workers and proactively delegates nontrivial work when useful independent workstreams can improve speed or coverage.
 
 ## Why this setup
 
@@ -37,6 +41,7 @@ GPT-6 Luna is designed for efficient, focused, high-volume work. The primary mod
 - Four predefined Luna roles inherit the global context and compaction defaults: `medium`, `high`, `max`, and `review`
 - GPT-6 Luna’s official context window is 1.05M; this installed Codex catalog currently caps it at `max_context_window = 872_000`, with an effective runtime compaction limit of `828_400`
 - Context reuse across investigation → implementation → testing → revision
+- Proactive delegation for nontrivial tasks, with independent analysis or validation even when implementation follows one main path
 - No mandatory reasoning ladder
 - No Sol/Terra escalation layer
 - Separate read-only review roles
@@ -88,7 +93,7 @@ The four role files under `~/.codex/agents/` inherit the global context and comp
 
 GPT-6 Luna supports reasoning through `max`, so the primary and `luna_max` roles use `max`. `ultra` remains enabled in the model picker for models that support it, but GPT-6 Luna does not support `ultra`.
 
-The four role names are predefined task classes. The main model may call the suitable role when useful; the screenshot below records six simultaneous work units, not six role definitions.
+The four role names are predefined task classes. For nontrivial work, the main model proactively assigns useful independent workstreams to suitable roles; the screenshot records six simultaneous work units, not six role definitions.
 
 The TUI footer displays the active model/reasoning, remaining context, and current directory. The `context-remaining` item enables the context-usage UI.
 
@@ -107,12 +112,16 @@ The default follow-up behavior is `queue`, so additional prompts wait until the 
 
 These are **task classes, not sequential stages**.
 
-For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially: wait for the prerequisite result before dispatching the next step.
-The default delegated role is `luna_max` on `gpt-6-luna` with max reasoning; use a lower-effort predefined role when the task fits it better.
+For every nontrivial task, Luna Max proactively splits independent research, implementation, test, and review work into separate concurrent Luna workstreams where that improves turnaround or coverage. For an otherwise single-stream nontrivial task, delegate at least one useful independent analysis or validation slice when it adds value. Run dependent steps sequentially and wait for prerequisites. Skip delegation only for trivial one-step tasks, inseparable or primary-context-only work, safety/privacy or conflicting-write constraints, or when delegation offers no benefit.
+The default delegated role is `luna_max` on `gpt-6-luna` with max reasoning; select another predefined role directly when its scope and permissions fit better.
+
+Use as many genuinely useful independent workstreams as the task supports, up to the configured 12-thread cap. `max_concurrent_threads_per_session = 12` is a ceiling, not a target, and setting it does not itself start agents. Do not target six or any other fixed count, add ceremonial workers, duplicate scopes, or allow overlapping edits. Luna Max owns orchestration, decisions, integration, and acceptance; delegated Luna roles remain leaves.
+
+See the official [Codex subagents guide](https://learn.chatgpt.com/docs/agent-configuration/subagents) for delegation behavior, roles, and concurrency settings.
 
 ## Parallel execution use cases
 
-The attached run snapshot shows six independent work units active concurrently. This is an example of task decomposition, not six predefined agent types and not a request to change the model configuration.
+The attached run snapshot shows six independent work units active concurrently. Six is the observed count in this example, not a fixed target or required number of workers; choose the count from useful independent work and stay within the configured cap.
 
 ![Six parallel Luna Max work units](./parallel-luna-max-run.png)
 
@@ -138,9 +147,9 @@ The supplied Pro 5X observation is approximately 1% of the weekly usage window p
 
 ## GitHub routing
 
-- Important GitHub work is explicitly delegated to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing; reuse that worker when possible.
-- `luna_max` is the default delegated worker for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; use lower-effort roles only when the task explicitly warrants them, and use `luna_review` for independent review.
-- Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers; keep dependent work sequential and wait for its prerequisites.
+- Nontrivial repository and GitHub work is proactively delegated to suitable Luna workers before broad exploration, implementation, debugging, or testing; reuse an existing useful worker when possible.
+- `luna_max` is the default delegated worker for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; choose `luna_medium`, `luna_high`, or `luna_review` directly when the task and permissions fit those roles.
+- Split independent investigations, implementation units, test suites, and reviews across concurrent workers; for otherwise single-stream nontrivial work, add a useful independent validation or analysis slice when it improves the result. Keep dependent work sequential and wait for its prerequisites.
 - Luna Max owns task framing, final scope, integration, and acceptance; Astra is an explicit optional escalation.
 - While workers run, Luna Max does not repeat the same scope; independent work units may be delegated to Luna in parallel.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
@@ -151,4 +160,4 @@ The global Codex configuration requests `model_context_window = 1_000_000` and `
 
 ## License
 
-MIT License. See [`LICENSE`](./LICENSE).
+MIT License: [English](./LICENSE) | [unofficial Korean translation](./LICENSE.kr). The English original controls in any conflict.

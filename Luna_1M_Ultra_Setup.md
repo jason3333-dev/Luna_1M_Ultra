@@ -1,16 +1,22 @@
 # Luna_1M_Ultra — GPT-6 Luna Setup Guide
 
+[English](./Luna_1M_Ultra_Setup.md) | [한국어](./Luna_1M_Ultra_Setup.kr.md)
+
 A Codex multi-agent setup and prompt/routing profile named **Luna_1M_Ultra**, using **GPT-6 Luna (`gpt-6-luna`) with max reasoning as the primary session and default delegated model**.
 
 `Luna_1M_Ultra` (or “Luna Ultra”) is a conceptual profile name, not a model ID or official model offering. The actual model ID for this configuration is `gpt-6-luna`.
 
 This repository is an independent public clone of the profile documentation, not a same-account Git fork.
 
+## Language copies
+
+Maintain a complete Korean companion for every document. Markdown copies use the `.kr.md` suffix and link to their English source. Keep facts, examples, code, configuration keys, paths, and links synchronized; preserve technical identifiers in both copies. `LICENSE.kr` is an unofficial convenience translation, so the English `LICENSE` controls in any conflict.
+
 The design goals are:
 
 - Keep orchestration and integration in Luna Max (`gpt-6-luna` with max reasoning).
 - Use `gpt-6-luna` for the primary session and all four predefined Luna roles.
-- Let the primary session call the predefined roles when independent work can improve turnaround or coverage.
+- Proactively delegate useful independent workstreams for every nontrivial task, across research, implementation, testing, and review; for a single-stream task, add independent analysis or validation when it adds value.
 - Select Luna reasoning effort by task complexity instead of running every task at `max`.
 - Reuse relevant Luna context across investigation, implementation, and verification.
 - Keep delegated roles as leaves. Astra remains an optional, explicitly selected escalation.
@@ -33,9 +39,9 @@ Luna Max primary (`gpt-6-luna`; max reasoning)
 ```
 
 The roles are independent task classes, not a mandatory sequence. Pick the role that matches the task.
-The default delegated role is `luna_max` with max reasoning; use a lower-effort role only when the task explicitly warrants it.
+The default delegated role is `luna_max` with max reasoning. Choose `luna_medium`, `luna_high`, or `luna_review` directly when its scope, effort, or permissions fit better; do not require a role sequence.
 
-For each task, dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for each prerequisite result before dispatching the next step.
+For every nontrivial task, dispatch independent research, implementation, tests, and reviews concurrently once their inputs are clear. Keep dependent work sequential. Use as many genuinely useful independent workstreams as the task supports, up to the configured 12-thread cap. The cap is not a target, and setting it does not itself start agents. Do not target six or pad with ceremonial work; avoid duplicate scopes and overlapping edits. For otherwise single-stream nontrivial tasks, delegate a useful independent analysis or validation slice when it adds value. Handle directly only trivial one-step, inherently inseparable or primary-context-only, no-benefit, safety/privacy, or conflicting-write cases.
 
 For difficult questions, the primary Luna Max decides directly by default. Astra can be selected explicitly for an escalation. Predefined Luna roles are leaves and do not spawn subagents.
 
@@ -71,6 +77,8 @@ max_depth = 1
 [features.multi_agent_v2]
 expose_spawn_agent_model_overrides = true
 ```
+
+`max_concurrent_threads_per_session = 12` is the maximum concurrent worker-thread capacity, not a target. This setting alone does not start agents; task routing determines when to delegate.
 
 Notes:
 
@@ -204,11 +212,11 @@ Add this block to the active global or project `AGENTS.md`.
 Luna Max is the primary/default session and owns orchestration, hard technical decisions, integration, and final acceptance.
 All delegated AI work uses Luna. Astra is an optional explicit escalation, not the default primary model. Do not use Sol, Terra, or Astra child sessions.
 
-For important repository work, delegate one coherent unit to an existing suitable Luna worker before broad exploration, implementation, debugging, or testing. Reuse a useful worker before creating a new one. Dispatch independent investigations, test suites, and reviews concurrently to separate Luna workers. Run dependent work sequentially, waiting for prerequisite results before dispatching the next step. While workers run, Luna Max does not repeat the same scope.
+For every nontrivial task—not only repository work—proactively decompose the request and delegate useful independent workstreams to Luna workers. Start independent research, implementation slices, source checks, tests, and reviews concurrently once their inputs are clear. If a task has one main workstream, delegate a distinct analysis or validation slice whenever that adds material value. Handle directly only trivial one-step requests, inherently inseparable or primary-context-only work, cases where delegation adds no value, or safety, privacy, and conflicting-write constraints. Keep dependent work sequential. While workers run, Luna Max does not repeat their scopes and remains responsible for orchestration, integration, and acceptance.
 
-The default delegated worker is `luna_max` with max reasoning. Use lower-effort roles only when the task explicitly warrants them.
+Use `luna_max` with max reasoning by default for substantial work. Choose `luna_medium`, `luna_high`, or `luna_review` directly when their bounded scope, effort, or permissions fit better; do not require the user to request a role explicitly.
 
-Use a small number of parallel Luna workers for independent units that improve turnaround or coverage. Do not create duplicate or ceremonial workers, and do not let workers edit the same file concurrently.
+Use as many agents as there are genuinely useful independent workstreams, up to the configured 12-thread cap; do not target six or fill slots arbitrarily. The cap is not a target, and the setting does not itself trigger agents. Reuse useful workers, avoid duplicate scopes and overlapping edits, and keep dependent work sequential. Luna workers are leaves and do not spawn subagents.
 
 Choose the Luna role directly by task difficulty and permission needs:
 - `luna_medium`: medium — bounded flow/log/dependency analysis.
@@ -234,15 +242,15 @@ After two materially different failed approaches without progress, Luna reports 
 Luna Max decides directly by default, then the same Luna worker continues implementation and verification. An explicitly selected Astra escalation may decide only when requested.
 Escalate security or data-loss risks immediately.
 
-Luna Max may act directly for simple answers, tiny obvious work, judgments requiring the full primary-session context, or a concrete technical or permission blocker to delegation. Do not skip delegation merely because the primary session can do the work.
+Luna Max may act directly only for trivial one-step requests, inherently inseparable or primary-context-only work, cases where delegation adds no value, or safety, privacy, and conflicting-write constraints. Do not skip useful delegation merely because Luna Max can also do the work.
 
-Use a small useful number of independent workers.
-Do not let multiple workers edit the same file concurrently.
+Use as many genuinely useful independent workers as the task supports within the configured 12-thread cap; the cap is not a target and six is not a required count.
+Do not create duplicate scopes or allow overlapping edits.
 Use independent review when it materially improves correctness; do not create ceremonial reviewers.
 Do not claim unrun tests passed.
 
 GitHub routing:
-- Route important GitHub work to the default `luna_max` worker: use it for repository search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafting; use `luna_review` for independent review.
+- Route nontrivial repository and GitHub work through the same proactive delegation policy: use `luna_max` by default for substantive search, diff analysis, code or documentation changes, tests, GitHub CLI preparation, and issue/PR drafts; choose another Luna role directly when its scope and permissions fit better, and use `luna_review` for independent review.
 - Keep optional Astra escalations to the minimum needed for explicitly requested hard decisions or public repository operations; Luna Max remains the default owner.
 - Never publish secrets, local configuration, credentials, or an unreviewed backlog.
 <!-- END ASTRA_LUNA_1M -->
@@ -258,9 +266,10 @@ Recommended behavior:
 
 | Situation | Context strategy |
 |---|---|
-| One-off file or symbol lookup | Handle directly in the primary session; use `luna_medium` for a bounded investigation |
+| Trivial one-step lookup | Handle directly in the primary session; use `luna_medium` for a bounded investigation when useful |
 | Dependent investigation → implementation → revisions | Reuse the same Luna worker sequentially |
-| Independent investigation, test suite, or review | Dispatch concurrently to separate Luna workers |
+| Nontrivial task with independent workstreams | Dispatch as many useful independent units concurrently as the task supports, within the configured 12-thread cap |
+| Otherwise single-stream nontrivial task | Delegate a useful independent analysis or validation slice when it adds value |
 | Unrelated task | Start fresh |
 | Hard unresolved decision | Report the issue and evidence to the primary Luna Max session; use Astra only when explicitly selected |
 
